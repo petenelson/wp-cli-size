@@ -11,6 +11,9 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * ## OPTIONS
 	 *
+	 * [<database_name>]...
+	 * Ddatabase name(s), defaults to the current WordPress database
+	 *
 	 * --format
 	 * table, csv, json
 	 * 
@@ -18,16 +21,21 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 *     wp size database
 	 *
+	 *     wp size database wp_default wp_mysite --format=csv
+	 *
 	 * @subcommand database
 	 *
-	 * @synopsis [--format]
+	 * @synopsis [<database_name>...] [--format]
 	 */
 	function database( $positional_args, $assoc_args = array() ) {
 
-		$format        = ! empty( $assoc_args['format'] ) ? $assoc_args['format'] : 'table';
+		$format         = ! empty( $assoc_args['format'] ) ? $assoc_args['format'] : 'table';
+		$database_names = empty( $positional_args ) ? array( DB_NAME ) : $positional_args;
 
-		$database_name = DB_NAME;
-		$database_size = $this->get_database_size( $database_name );
+		$sizes = array();
+		foreach( $database_names as $database_name ) {
+			$sizes[] = $this->size_to_row( $this->get_database_size( $database_name ) );
+		}
 
 		$args = array( 'format' => $format );
 
@@ -36,7 +44,7 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 			$this->fields()
 		);
 
-		$formatter->display_items( array( $this->size_to_row( $database_size ) ) );
+		$formatter->display_items( $sizes );
 
 	}
 
@@ -100,25 +108,25 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	}
 
 
-	private function get_database_size( $db_name = '' ) {
+	private function get_database_size( $database_name = '' ) {
 
 		global $wpdb;
 
 		$database = array();
-		$database['name'] = $db_name;
-		$database['size'] = $wpdb->get_var( $wpdb->prepare( "SELECT SUM(data_length + index_length) FROM information_schema.TABLES where table_schema = '%s' GROUP BY table_schema;", DB_NAME ) );
+		$database['name'] = $database_name;
+		$database['size'] = $wpdb->get_var( $wpdb->prepare( "SELECT SUM(data_length + index_length) FROM information_schema.TABLES where table_schema = '%s' GROUP BY table_schema;", $database_name ) );
 
 		return $database;
 	}
 
 
-	private function get_table_size( $db_name, $table_name ) {
+	private function get_table_size( $database_name, $table_name ) {
 
 		global $wpdb;
 
 		$size = $wpdb->get_row( $wpdb->prepare(
 			"SELECT Table_Name as Name, SUM(data_length + index_length) as Bytes FROM information_schema.TABLES where table_schema = '%s' and Table_Name = '%s' GROUP BY Table_Name LIMIT 1",
-			$db_name,
+			$database_name,
 			$table_name
 			),
 		ARRAY_A
@@ -132,10 +140,10 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	}
 
 
-	private function get_table_list( $db_name ) {
+	private function get_table_list( $database_name ) {
 
 		global $wpdb;
-		return $wpdb->get_col( $wpdb->prepare( "SELECT Table_Name as Name FROM information_schema.TABLES where table_schema = '%s'", $db_name ) );
+		return $wpdb->get_col( $wpdb->prepare( "SELECT Table_Name as Name FROM information_schema.TABLES where table_schema = '%s'", $database_name ) );
 	}
 
 
