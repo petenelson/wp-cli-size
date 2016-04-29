@@ -1,8 +1,0 @@
-.phpintel
-npm-debug.log
-node_modules/
-release/
-.mo
-composer.lock
-vendor/
-build/
