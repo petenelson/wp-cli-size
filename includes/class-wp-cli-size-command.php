@@ -41,7 +41,23 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	}
 
 
-	function tables() {
+	/**
+	 * Gets the WordPress table sizes
+	 *
+	 * ## OPTIONS
+	 *
+	 * --format
+	 * table, csv, json
+	 * 
+	 * ## EXAMPLES
+	 *
+	 *     wp size tables
+	 *
+	 * @subcommand tables
+	 *
+	 * @synopsis [--format]
+	 */
+	function tables($positional_args, $assoc_args = array() ) {
 
 		$format = ! empty( $assoc_args['format'] ) ? $assoc_args['format'] : 'table';
 
@@ -50,24 +66,30 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 		$tables = $this->get_table_list( $database_name );
 		$sizes = array();
 		foreach ( $tables as $table_name ) {
-			$sizes[] = $this->get_table_size( $database_name, $table_name );
+			 $size = $this->get_table_size( $database_name, $table_name );
+			 $size['Rows'] = $this->get_row_count( $database_name, $table_name );
+			 $sizes[] = $size;
 		}
-
 
 		$args = array( 'format' => $format );
 
+		$fields = $this->fields();
+		$fields[] = 'Rows';
+
 		$formatter = new \WP_CLI\Formatter(
 			$args,
-			$this->fields()
+			$fields
 		);
 
 		$formatter->display_items( $sizes );
 
 	}
 
+
 	private function fields() {
 		return array( 'Name', 'Size', 'Bytes' );
 	}
+
 
 	private function size_to_row( $size_array ) {
 		return array(
@@ -76,6 +98,7 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 			'Bytes' => $size_array['size'],
 			);
 	}
+
 
 	private function get_database_size( $db_name = '' ) {
 
@@ -112,8 +135,15 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	private function get_table_list( $db_name ) {
 
 		global $wpdb;
-
 		return $wpdb->get_col( $wpdb->prepare( "SELECT Table_Name as Name FROM information_schema.TABLES where table_schema = '%s'", $db_name ) );
+	}
+
+
+	private function get_row_count( $database_name, $table_name ) {
+		global $wpdb;
+		$database_name = sanitize_key( $database_name );
+		$table_name   = sanitize_key( $table_name );
+		return $wpdb->get_var( "SELECT count(*) FROM `{$database_name}`.`{$table_name}`" );
 	}
 
 }
