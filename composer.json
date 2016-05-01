@@ -1,6 +1,7 @@
 {
     "name": "petenelson/wp-cli-size",
     "description": "Database and table sizes command for WP-CLI",
+    "homepage": "https://github.com/petenelson/wp-cli-size",
     "license": "MIT",
     "require": {
         "php": ">=5.4"
