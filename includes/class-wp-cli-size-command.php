@@ -11,7 +11,7 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [<database_name>]...
+	 * [<database_name>]
 	 * Ddatabase name(s), defaults to the current WordPress database
 	 *
 	 * --format
@@ -54,6 +54,12 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * ## OPTIONS
 	 *
+	 * [<table_name>]
+	 * List of table names, defaults to all tables
+	 *
+	 * --database
+	 * Database name, defaults to current WordPress database
+	 *
 	 * --format
 	 * table, csv, json
 	 * 
@@ -63,15 +69,14 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * @subcommand tables
 	 *
-	 * @synopsis [--format]
+	 * @synopsis [<table_name>...] [--database] [--format]
 	 */
-	function tables($positional_args, $assoc_args = array() ) {
+	function tables( $positional_args, $assoc_args = array() ) {
 
 		$format = ! empty( $assoc_args['format'] ) ? $assoc_args['format'] : 'table';
+		$database_name = ! empty( $assoc_args['database'] ) ? $assoc_args['database'] : DB_NAME;
 
-		$database_name = DB_NAME;
-
-		$tables = $this->get_table_list( $database_name );
+		$tables = empty( $positional_args ) ? $this->get_table_list( $database_name ) : $positional_args;
 		$sizes = array();
 		foreach ( $tables as $table_name ) {
 			 $size = $this->get_table_size( $database_name, $table_name );
