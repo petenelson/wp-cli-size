@@ -54,14 +54,17 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [<table_name>]
-	 * List of table names, defaults to all tables
+	 * [<table>]
+	 * List of table names, defaults to all tables in the current site
 	 *
 	 * --database
 	 * Database name, defaults to current WordPress database
 	 *
 	 * --format
 	 * table, csv, json
+	 *
+	 * --network
+	 * all the tables registered to $wpdb in multisite install
 	 * 
 	 * ## EXAMPLES
 	 *
@@ -69,16 +72,20 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * @subcommand tables
 	 *
-	 * @synopsis [<table_name>...] [--database] [--format]
+	 * @synopsis [<table>...] [--database] [--format] [--network]
 	 */
 	function tables( $positional_args, $assoc_args = array() ) {
+
+		$table_names = WP_CLI\Utils\wp_get_table_names( $positional_args, $assoc_args );
+		// var_dump( $table_names );
+		// die(); 
+
 
 		$format = ! empty( $assoc_args['format'] ) ? $assoc_args['format'] : 'table';
 		$database_name = ! empty( $assoc_args['database'] ) ? $assoc_args['database'] : DB_NAME;
 
-		$tables = empty( $positional_args ) ? $this->get_table_list( $database_name ) : $positional_args;
 		$sizes = array();
-		foreach ( $tables as $table_name ) {
+		foreach ( $table_names as $table_name ) {
 			 $size = $this->get_table_size( $database_name, $table_name );
 			 $size['Rows'] = $this->get_row_count( $database_name, $table_name );
 			 $sizes[] = $size;
@@ -143,14 +150,6 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 
 		return $size;
 	}
-
-
-	private function get_table_list( $database_name ) {
-
-		global $wpdb;
-		return $wpdb->get_col( $wpdb->prepare( "SELECT Table_Name as Name FROM information_schema.TABLES where table_schema = '%s'", $database_name ) );
-	}
-
 
 	private function get_row_count( $database_name, $table_name ) {
 		global $wpdb;
