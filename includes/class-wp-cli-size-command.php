@@ -57,14 +57,18 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 * [<table>]
 	 * List of table names, defaults to all tables in the current site
 	 *
-	 * --database
+	 * [--database]
 	 * Database name, defaults to current WordPress database
 	 *
-	 * --format
+	 * [--format]
 	 * table, csv, json
 	 *
-	 * --network
-	 * all the tables registered to $wpdb in multisite install
+	 * [--network]
+	 * List all the tables registered to $wpdb in a multisite install.
+	 *
+	 * [--all-tables]
+	 * List ALL tables in the database, regardless of the prefix, and
+	 * even if not registered on $wpdb. Overrides --network
 	 * 
 	 * ## EXAMPLES
 	 *
@@ -72,17 +76,16 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * @subcommand tables
 	 *
-	 * @synopsis [<table>...] [--database] [--format] [--network]
+	 * @synopsis [<table>...] [--database] [--format] [--network] [--all-tables]
 	 */
 	function tables( $positional_args, $assoc_args = array() ) {
 
-		$table_names = WP_CLI\Utils\wp_get_table_names( $positional_args, $assoc_args );
-		// var_dump( $table_names );
-		// die(); 
+		global $wpdb;
 
+		$table_names = WP_CLI\Utils\wp_get_table_names( $positional_args, $assoc_args );
 
 		$format = ! empty( $assoc_args['format'] ) ? $assoc_args['format'] : 'table';
-		$database_name = ! empty( $assoc_args['database'] ) ? $assoc_args['database'] : DB_NAME;
+		$database_name = ! empty( $assoc_args['database'] ) ? $assoc_args['database'] : $wpdb->dbname;
 
 		$sizes = array();
 		foreach ( $table_names as $table_name ) {
@@ -150,6 +153,7 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 
 		return $size;
 	}
+
 
 	private function get_row_count( $database_name, $table_name ) {
 		global $wpdb;
