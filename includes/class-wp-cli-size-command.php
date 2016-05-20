@@ -11,11 +11,11 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [<database_name>]
-	 * Ddatabase name(s), defaults to the current WordPress database
+	 * [<database>]
+	 * : Database name(s), defaults to the current WordPress database
 	 *
-	 * --format
-	 * table, csv, json
+	 * [--format]
+	 * : table, csv, json
 	 * 
 	 * ## EXAMPLES
 	 *
@@ -25,7 +25,7 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * @subcommand database
 	 *
-	 * @synopsis [<database_name>...] [--format]
+	 * @synopsis [<database>...] [--format]
 	 */
 	function database( $positional_args, $assoc_args = array() ) {
 
@@ -55,20 +55,22 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 * ## OPTIONS
 	 *
 	 * [<table>]
-	 * List of table names, defaults to all tables in the current site
-	 *
-	 * [--database]
-	 * Database name, defaults to current WordPress database
+	 * : List of table names, defaults to all tables in the current site
 	 *
 	 * [--format]
-	 * table, csv, json
+	 * : table, csv, json
 	 *
 	 * [--network]
-	 * List all the tables registered to $wpdb in a multisite install.
+	 * : List all the tables registered to $wpdb in a multisite install.
+	 *
+	 * [--all-tables-with-prefix]
+	 * : List any tables that match the table prefix even if not registered
+	 * on $wpdb.
 	 *
 	 * [--all-tables]
-	 * List ALL tables in the database, regardless of the prefix, and
-	 * even if not registered on $wpdb. Overrides --network
+	 * : List ALL tables in the database, regardless of the prefix, and
+	 * even if not registered on $wpdb. Overrides --network and
+	 * --all-tables-with-prefix.
 	 * 
 	 * ## EXAMPLES
 	 *
@@ -76,7 +78,7 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * @subcommand tables
 	 *
-	 * @synopsis [<table>...] [--database] [--format] [--network] [--all-tables]
+	 * @synopsis [<table>...] [--format] [--network] [--all-tables-with-prefix] [--all-tables]
 	 */
 	function tables( $positional_args, $assoc_args = array() ) {
 
@@ -85,7 +87,7 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 		$table_names = WP_CLI\Utils\wp_get_table_names( $positional_args, $assoc_args );
 
 		$format = ! empty( $assoc_args['format'] ) ? $assoc_args['format'] : 'table';
-		$database_name = ! empty( $assoc_args['database'] ) ? $assoc_args['database'] : $wpdb->dbname;
+		$database_name = $wpdb->dbname;
 
 		$sizes = array();
 		foreach ( $table_names as $table_name ) {
