@@ -11,11 +11,11 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [<database_name>]
-	 * Ddatabase name(s), defaults to the current WordPress database
+	 * [<database>]
+	 * : Database name(s), defaults to the current WordPress database
 	 *
-	 * --format
-	 * table, csv, json
+	 * [--format]
+	 * : table, csv, json
 	 * 
 	 * ## EXAMPLES
 	 *
@@ -25,7 +25,7 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * @subcommand database
 	 *
-	 * @synopsis [<database_name>...] [--format]
+	 * @synopsis [<database>...] [--format]
 	 */
 	function database( $positional_args, $assoc_args = array() ) {
 
@@ -54,14 +54,23 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [<table_name>]
-	 * List of table names, defaults to all tables
+	 * [<table>]
+	 * : List of table names, defaults to all tables in the current site
 	 *
-	 * --database
-	 * Database name, defaults to current WordPress database
+	 * [--format]
+	 * : table, csv, json
 	 *
-	 * --format
-	 * table, csv, json
+	 * [--network]
+	 * : List all the tables registered to $wpdb in a multisite install.
+	 *
+	 * [--all-tables-with-prefix]
+	 * : List any tables that match the table prefix even if not registered
+	 * on $wpdb.
+	 *
+	 * [--all-tables]
+	 * : List ALL tables in the database, regardless of the prefix, and
+	 * even if not registered on $wpdb. Overrides --network and
+	 * --all-tables-with-prefix.
 	 * 
 	 * ## EXAMPLES
 	 *
@@ -69,16 +78,19 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * @subcommand tables
 	 *
-	 * @synopsis [<table_name>...] [--database] [--format]
+	 * @synopsis [<table>...] [--format] [--network] [--all-tables-with-prefix] [--all-tables]
 	 */
 	function tables( $positional_args, $assoc_args = array() ) {
 
-		$format = ! empty( $assoc_args['format'] ) ? $assoc_args['format'] : 'table';
-		$database_name = ! empty( $assoc_args['database'] ) ? $assoc_args['database'] : DB_NAME;
+		global $wpdb;
 
-		$tables = empty( $positional_args ) ? $this->get_table_list( $database_name ) : $positional_args;
+		$table_names = WP_CLI\Utils\wp_get_table_names( $positional_args, $assoc_args );
+
+		$format = ! empty( $assoc_args['format'] ) ? $assoc_args['format'] : 'table';
+		$database_name = $wpdb->dbname;
+
 		$sizes = array();
-		foreach ( $tables as $table_name ) {
+		foreach ( $table_names as $table_name ) {
 			 $size = $this->get_table_size( $database_name, $table_name );
 			 $size['Rows'] = $this->get_row_count( $database_name, $table_name );
 			 $sizes[] = $size;
@@ -142,13 +154,6 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 		}
 
 		return $size;
-	}
-
-
-	private function get_table_list( $database_name ) {
-
-		global $wpdb;
-		return $wpdb->get_col( $wpdb->prepare( "SELECT Table_Name as Name FROM information_schema.TABLES where table_schema = '%s'", $database_name ) );
 	}
 
 
