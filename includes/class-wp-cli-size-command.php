@@ -99,6 +99,80 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	}
 
 
+	/**
+	 * Gets the WordPress upload folder size
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--format]
+	 * : table, csv, json
+	 *
+	 * [--network]
+	 * : gets the size of all upload directories in a multisite install
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp size media
+	 *
+	 *     wp size media --network
+	 *
+	 * @subcommand media
+	 *
+	 * @synopsis [--format] [--network]
+	 */
+	function media( $positional_args, $assoc_args = array() ) {
+
+		$format = ! empty( $assoc_args['format'] ) ? $assoc_args['format'] : 'table';
+		$network = ! empty( $assoc_args['network'] );
+
+		$fields = $this->fields();
+		$sizes = array();
+
+		if ( $network && is_multisite() ) {
+			$sites = wp_get_sites();
+
+			var_dump( $sites );
+
+			foreach ( $sites as $site ) {
+				switch_to_blog( $site['blog_id'] );
+
+				$upload_dir = wp_upload_dir();
+				if ( ! empty( $upload_dir ) ) {
+					$size = $this->size_to_row( array(
+						'name' => $upload_dir['basedir'],
+						'size' => $this->get_directory_size( $upload_dir['basedir'] ),
+							) );
+					$sizes[] = $size;
+				}
+
+			}
+
+		} else {
+
+			$upload_dir = wp_upload_dir();
+			if ( ! empty( $upload_dir ) ) {
+				$size = $this->size_to_row( array(
+					'name' => $upload_dir['basedir'],
+					'size' => $this->get_directory_size( $upload_dir['basedir'] ),
+						) );
+				$sizes[] = $size;
+			}
+
+		}
+
+
+
+
+		$formatter = new \WP_CLI\Formatter(
+			$args,
+			$fields
+		);
+
+		$formatter->display_items( $sizes );
+
+	}
+
+
 	private function fields() {
 		return array( 'Name', 'Size', 'Bytes' );
 	}
@@ -158,6 +232,22 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 		$table_name   = sanitize_key( $table_name );
 		return $wpdb->get_var( "SELECT count(*) FROM `{$database_name}`.`{$table_name}`" );
 	}
+
+
+	private function get_directory_size( $path ) {
+
+		require_once ABSPATH . 'wp-includes/ms-functions.php';
+
+		if ( ! is_dir( $path ) ) {
+			$size = -1;
+		} else {
+			$size = recurse_dirsize( $path );
+		}
+
+		return $size;
+
+	}
+
 
 }
 
