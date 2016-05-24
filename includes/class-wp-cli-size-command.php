@@ -143,8 +143,6 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 		if ( $network && is_multisite() ) {
 			$sites = wp_get_sites();
 
-			var_dump( $sites );
-
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
