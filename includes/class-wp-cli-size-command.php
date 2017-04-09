@@ -131,24 +131,24 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 */
 	function filesystem( $positional_args, $assoc_args = array() ) {
 
-		$format         = ! empty( $assoc_args['format'] ) ? $assoc_args['format'] : 'table';
+                $format         = ! empty( $assoc_args['format'] ) ? $assoc_args['format'] : 'table';
 
-		$sizes = array();
+                $sizes = array();
 
 		$dir = ABSPATH;
 
 		$sizes[] = $this->size_to_row( $this->get_directory_size( $dir ) );
 
- 		$args = array( 'format' => $format );
+                $args = array( 'format' => $format );
 
-		$formatter = new \WP_CLI\Formatter(
-			$args,
-			$this->fields()
-		);
+                $formatter = new \WP_CLI\Formatter(
+                        $args,
+                        $this->fields()
+                );
 
-		$formatter->display_items( $sizes );
+                $formatter->display_items( $sizes );
 
-	}
+        }
 
 
 	private function fields() {
@@ -202,7 +202,6 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 		$table_name   = sanitize_key( $table_name );
 		return $wpdb->get_var( "SELECT count(*) FROM `{$database_name}`.`{$table_name}`" );
 	}
-
 
 	private function get_directory_size( $directory ) {
 

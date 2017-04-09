@@ -6,5 +6,5 @@ Feature: size database command
     When I run `wp size database --format=csv`
     Then STDOUT should contain:
       """
-      wp_cli_test,"640 kB",655360
+      wp_cli_test,"640 kB"
       """
