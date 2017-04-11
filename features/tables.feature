@@ -6,45 +6,45 @@ Feature: size database command
     When I run `wp size tables --format=csv`
     Then STDOUT should contain:
       """
-      wp_commentmeta,"48 kB"
+      wp_commentmeta,"48 KB"
       """
     And STDOUT should contain:
       """
-      wp_comments,"96 kB"
+      wp_comments,"96 KB"
       """
     And STDOUT should contain:
       """
-      wp_options,"48 kB"
+      wp_options,"48 KB"
       """
     And STDOUT should contain:
       """
-      wp_postmeta,"48 kB"
+      wp_postmeta,"48 KB"
       """
     And STDOUT should contain:
       """
-      wp_posts,"80 kB"
+      wp_posts,"80 KB"
       """
     And STDOUT should contain:
       """
-      wp_term_relationships,"32 kB"
+      wp_term_relationships,"32 KB"
       """
     And STDOUT should contain:
       """
-      wp_term_taxonomy,"48 kB"
+      wp_term_taxonomy,"48 KB"
       """
     And STDOUT should contain:
       """
-      wp_termmeta,"48 kB"
+      wp_termmeta,"48 KB"
       """
     And STDOUT should contain:
       """
-      wp_terms,"48 kB"
+      wp_terms,"48 KB"
       """
     And STDOUT should contain:
       """
-      wp_usermeta,"48 kB"
+      wp_usermeta,"48 KB"
       """
     And STDOUT should contain:
       """
-      wp_users,"64 kB"
+      wp_users,"64 KB"
       """
