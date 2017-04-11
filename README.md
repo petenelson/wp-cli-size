@@ -48,6 +48,16 @@ Table sizes: `wp size tables`
 +-----------------------+-------+---------+------+
 ```
 
+Filesystem size: `wp size filesystem`
+
+```
++--------------------------+-------+----------+
+| Name                     | Size  | Bytes    |
++--------------------------+-------+----------+
+| /var/www/baab.de/htdocs/ | 30 MB | 31072772 |
++--------------------------+-------+----------+
+```
+
 CSV format: `wp size tables --format=csv`
 
 ```

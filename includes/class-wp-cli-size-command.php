@@ -16,7 +16,7 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 *
 	 * [--format]
 	 * : table, csv, json
-	 * 
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp size database
@@ -71,7 +71,7 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	 * : List ALL tables in the database, regardless of the prefix, and
 	 * even if not registered on $wpdb. Overrides --network and
 	 * --all-tables-with-prefix.
-	 * 
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp size tables
@@ -111,6 +111,40 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 	}
 
 
+	/**
+	* Gets the WordPress filesystem size
+	*
+	* ## OPTIONS
+	*
+	* [--format]
+	* : table, csv, json
+	*
+	* ## EXAMPLES
+	*
+	*     wp size filesystem
+	*
+	*     wp size filesystem wp_default wp_mysite --format=csv
+	*
+	* @subcommand filesystem
+	*
+	* @synopsis [--format]
+	*/
+	function filesystem( $positional_args, $assoc_args = array() ) {
+
+		$dir = ABSPATH;
+		$sizes = array();
+		$format = ! empty( $assoc_args['format'] ) ? $assoc_args['format'] : 'table';
+		$sizes[] = $this->size_to_row( $this->get_directory_size( $dir ) );
+		$args = array( 'format' => $format );
+
+		$formatter = new \WP_CLI\Formatter(
+			$args,
+			$this->fields()
+		);
+
+		$formatter->display_items( $sizes );
+
+	}
 	private function fields() {
 		return array( 'Name', 'Size', 'Bytes' );
 	}
@@ -146,7 +180,7 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 			$database_name,
 			$table_name
 			),
-		ARRAY_A
+			ARRAY_A
 		);
 
 		if ( ! empty( $size ) ) {
@@ -162,6 +196,27 @@ class WP_CLI_Size_Command extends WP_CLI_Size_Base_Command  {
 		$database_name = sanitize_key( $database_name );
 		$table_name   = sanitize_key( $table_name );
 		return $wpdb->get_var( "SELECT count(*) FROM `{$database_name}`.`{$table_name}`" );
+	}
+
+	function get_directory_size($directory) {
+
+		$du = array();
+		if ( file_exists( '/usr/bin/du' ) ) {
+			$io = popen ( '/usr/bin/du -sb ' . $directory, 'r' );
+			$du_out = fgets ( $io, 4096);
+			$size = substr ( $du_out, 0, strpos ( $size, "\t" ) );
+			pclose ( $io );
+		} else {
+			$size = 0;
+			foreach( new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $directory ) ) as $file ) {
+				$size += $file->getSize();
+			}
+		}
+
+		$du['name'] = $directory;
+		$du['size'] = $size;
+
+		return $du;
 	}
 
 }
